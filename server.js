@@ -26,13 +26,31 @@ db.connect((err) => {
   }
 });
 
-// route utama untuk cek backend aktif
+// cek backend aktif
 app.get("/", (req, res) => {
   res.send("🚀 Backend Railway Aktif dan Terhubung!");
 });
 
+// API Register (simpan email & password)
+app.post("/api/register", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email dan password wajib diisi" });
+  }
+
+  const query = "INSERT INTO users (email, password, waktu) VALUES (?, ?, NOW())";
+  db.query(query, [email, password], (err, result) => {
+    if (err) {
+      console.error("❌ Error saat menyimpan:", err);
+      return res.status(500).json({ message: "Gagal menyimpan user" });
+    }
+    res.json({ success: true, message: "User berhasil disimpan" });
+  });
+});
+
 // API Login
-app.post("/api/simpan", (req, res) => {
+app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
