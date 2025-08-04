@@ -2,19 +2,25 @@ import express from "express";
 import mysql from "mysql2";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Fix __dirname untuk ES Module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Koneksi Database
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "db_simulasi",
+  port: process.env.DB_PORT || 3306
 });
 
 db.connect((err) => {
@@ -25,12 +31,15 @@ db.connect((err) => {
   }
 });
 
-// Route default untuk cek backend
+// Serve file static (frontend)
+app.use(express.static(path.join(__dirname, "public")));
+
+// Default buka login.html
 app.get("/", (req, res) => {
-  res.send("🚀 Backend Railway Aktif dan Terhubung!");
+  res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// Registrasi user baru
+// Endpoint Registrasi
 app.post("/api/register", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -43,7 +52,7 @@ app.post("/api/register", (req, res) => {
   });
 });
 
-// Login user
+// Endpoint Login
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -60,6 +69,5 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-// Jalankan server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
