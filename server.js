@@ -31,7 +31,7 @@ db.connect((err) => {
   }
 });
 
-// Serve file static (frontend)
+// Serve file statis (login.html & index.html)
 app.use(express.static(path.join(__dirname, "public")));
 
 // Default buka login.html
@@ -39,24 +39,12 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// Endpoint Registrasi
-app.post("/api/register", (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ message: "Email dan password wajib diisi" });
-
-  const sql = "INSERT INTO users (email, password, waktu) VALUES (?, ?, NOW())";
-  db.query(sql, [email, password], (err) => {
-    if (err) return res.status(500).json({ message: "❌ Gagal menyimpan data" });
-    res.json({ success: true, message: "✅ Registrasi berhasil" });
-  });
-});
-
 // Endpoint Login
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password)
+  if (!email || !password) {
     return res.status(400).json({ message: "Email dan password harus diisi" });
+  }
 
   const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
   db.query(sql, [email, password], (err, result) => {
@@ -66,6 +54,20 @@ app.post("/api/login", (req, res) => {
     } else {
       res.status(401).json({ success: false, message: "❌ Email atau password salah" });
     }
+  });
+});
+
+// Endpoint Registrasi
+app.post("/api/register", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email dan password wajib diisi" });
+  }
+
+  const sql = "INSERT INTO users (email, password, waktu) VALUES (?, ?, NOW())";
+  db.query(sql, [email, password], (err) => {
+    if (err) return res.status(500).json({ message: "❌ Gagal menyimpan data" });
+    res.json({ success: true, message: "✅ Registrasi berhasil" });
   });
 });
 
