@@ -1,65 +1,62 @@
-// server.js
 import express from "express";
 import cors from "cors";
-import mysql from "mysql2/promise";
+import mysql from "mysql2";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 8080;
+
 app.use(cors());
 app.use(express.json());
 
-// ✅ Koneksi ke database db_simulasi
-const dbConfig = {
-  host: process.env.MYSQLHOST || "localhost",
-  user: process.env.MYSQLUSER || "root",
-  password: process.env.MYSQLPASSWORD || "",
-  database: process.env.MYSQLDATABASE || "db_simulasi",
-  port: process.env.MYSQLPORT || 3306,
-};
+// Koneksi ke MySQL Railway
+const db = mysql.createConnection({
+  host: process.env.DB_HOST || "containers-us-west-55.railway.app",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "passwordmu",
+  database: process.env.DB_NAME || "db_simulasi",
+  port: process.env.DB_PORT || 3306,
+});
 
-let connection;
-async function initDB() {
-  try {
-    connection = await mysql.createConnection(dbConfig);
-    console.log("✅ MySQL Connected ke db_simulasi!");
-  } catch (err) {
-    console.error("❌ Database connection failed:", err.message);
-    process.exit(1);
+// Cek koneksi
+db.connect((err) => {
+  if (err) {
+    console.error("❌ Gagal konek ke database:", err);
+  } else {
+    console.log("✅ Terhubung ke database Railway");
   }
-}
-initDB();
+});
 
-// ✅ Route root untuk test
+// Route default
 app.get("/", (req, res) => {
   res.send("🚀 Backend Railway Aktif dan Berjalan!");
 });
 
-// ✅ Route login
-app.post("/api/simpan", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email dan password wajib diisi" });
-    }
-
-    const [rows] = await connection.execute(
-      "SELECT * FROM users WHERE email = ? AND password = ?",
-      [email, password]
-    );
-
-    if (rows.length > 0) {
-      res.json({ success: true, message: "Login berhasil!", user: rows[0] });
-    } else {
-      res.status(401).json({ success: false, message: "Login gagal, email atau password salah" });
-    }
-  } catch (err) {
-    console.error("❌ Error saat login:", err.message);
-    res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
+// API untuk login
+app.post("/api/simpan", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Email dan password harus diisi" });
   }
+
+  const query = "SELECT * FROM users WHERE email = ? AND password = ?";
+  db.query(query, [email, password], (err, results) => {
+    if (err) {
+      console.error("❌ Query error:", err);
+      return res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
+    }
+
+    if (results.length > 0) {
+      return res.json({ success: true, message: "Login berhasil" });
+    } else {
+      return res.status(401).json({ success: false, message: "Login gagal: email atau password salah" });
+    }
+  });
 });
 
-// ✅ Port Railway
-const PORT = process.env.PORT || 8080;
+// Jalankan server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
