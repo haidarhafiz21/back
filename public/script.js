@@ -4,7 +4,7 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
   const msg = document.getElementById("msg");
 
   try {
-    const res = await fetch("/api/login", {
+    const res = await fetch("/api/simpan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
@@ -18,6 +18,6 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
       msg.innerHTML = "❌ " + data.message;
     }
   } catch (error) {
-    msg.innerHTML = "❌ Gagal terhubung ke server";
+    msg.innerHTML = "❌ Gagal menghubungi server";
   }
 });
