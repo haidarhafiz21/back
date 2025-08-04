@@ -12,6 +12,10 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
 
     const data = await res.json();
     if (data.success) {
+      // Simpan status login di browser
+      localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("userEmail", email);
+
       msg.style.color = "green";
       msg.innerHTML = "✅ Login berhasil, membuka undangan...";
       setTimeout(() => { window.location.href = "index.html"; }, 1200);

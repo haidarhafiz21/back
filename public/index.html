@@ -6,7 +6,21 @@
   <title>Undangan</title>
 </head>
 <body>
-  <h1>🎉 Selamat datang di Undangan!</h1>
-  <p>Terima kasih sudah login.</p>
+  <h1>🎉 Selamat Datang di Undangan 🎉</h1>
+  <p id="welcome"></p>
+
+  <script>
+    // Cek status login
+    const loggedIn = localStorage.getItem("loggedIn");
+    const userEmail = localStorage.getItem("userEmail");
+
+    if (!loggedIn || loggedIn !== "true") {
+      alert("Anda harus login dulu!");
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("welcome").innerText =
+        "Anda berhasil login sebagai: " + userEmail;
+    }
+  </script>
 </body>
 </html>
