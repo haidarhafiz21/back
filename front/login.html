@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Undangan</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 95%;
+      padding: 10px;
+      background: teal;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: darkcyan;
+    }
+    .msg {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Login untuk melihat Undangan</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Masukkan Email" required />
+      <input type="password" id="password" placeholder="Masukkan Password" required />
+      <button type="submit">Login</button>
+      <p id="message" class="msg"></p>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("message");
+
+      try {
+        const res = await fetch("https://NAMA-PROJECT.onrender.com/api/simpan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.textContent = data.message;
+          msg.className = "msg success";
+        } else {
+          msg.textContent = data.message || "Gagal login";
+          msg.className = "msg error";
+        }
+      } catch (err) {
+        msg.textContent = "❌ Gagal menghubungi server";
+        msg.className = "msg error";
+      }
+    });
+  </script>
+</body>
+</html>
