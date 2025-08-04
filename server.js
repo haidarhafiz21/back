@@ -2,16 +2,20 @@ import express from "express";
 import mysql from "mysql2";
 import dotenv from "dotenv";
 import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public")); // untuk login.html & undangan.html
+app.use(express.static(path.join(__dirname, "public"))); // folder public untuk html
 
-// koneksi db
+// Koneksi database
 const db = mysql.createConnection({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
@@ -19,7 +23,6 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME || "db_simulasi",
 });
 
-// cek db
 db.connect((err) => {
   if (err) {
     console.error("❌ Gagal koneksi database:", err);
@@ -28,12 +31,18 @@ db.connect((err) => {
   }
 });
 
-// endpoint simpan login
+// ✅ Route default arahkan ke login.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+// API simpan login
 app.post("/api/simpan", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Email dan password wajib diisi" });
   }
+
   db.query(
     "INSERT INTO users (email, password) VALUES (?, ?)",
     [email, password],
@@ -45,11 +54,6 @@ app.post("/api/simpan", (req, res) => {
       res.json({ success: true, redirect: "/undangan.html" });
     }
   );
-});
-
-// default route
-app.get("/", (req, res) => {
-  res.send("🚀 Backend Railway Aktif dan Terhubung!");
 });
 
 app.listen(PORT, () => {
