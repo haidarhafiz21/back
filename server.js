@@ -1,64 +1,30 @@
 import express from "express";
-import mysql from "mysql2";
-import cors from "cors";
-import bodyParser from "body-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
+
+// Gunakan PORT dari Railway atau fallback ke 5000
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Mendapatkan __dirname (karena pakai ES Module)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Koneksi database MySQL
-const db = mysql.createConnection({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASS || "",
-  database: process.env.DB_NAME || "db_simulasi",
+// Middleware untuk melayani file statis dari folder 'front'
+app.use(express.static(path.join(__dirname, "front")));
+
+// Route utama -> tampilkan index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "front", "index.html"));
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("❌ Gagal koneksi database:", err);
-    return;
-  }
-  console.log("✅ Terkoneksi ke MySQL!");
-});
-
-// API untuk simpan data login
-app.post("/api/simpan", (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email dan password wajib diisi" });
-  }
-
-  const sql = "INSERT INTO users (email, password) VALUES (?, ?)";
-  db.query(sql, [email, password], (err, result) => {
-    if (err) {
-      console.error("❌ Error insert:", err);
-      res.status(500).json({ message: "❌ Gagal menyimpan data" });
-    } else {
-      res.json({ message: "✅ Data berhasil disimpan!", id: result.insertId });
-    }
-  });
-});
-
-// API untuk ambil semua data
-app.get("/api/data", (req, res) => {
-  db.query("SELECT * FROM users ORDER BY waktu DESC", (err, rows) => {
-    if (err) {
-      console.error("❌ Error ambil data:", err);
-      res.status(500).json({ message: "❌ Gagal ambil data" });
-    } else {
-      res.json(rows);
-    }
-  });
+// Route login -> tampilkan login.html
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "front", "login.html"));
 });
 
 // Jalankan server
 app.listen(PORT, () => {
-  console.log(`🚀 Server jalan di http://localhost:${PORT}`);
+  console.log(`🚀 Server jalan di port ${PORT}`);
 });
