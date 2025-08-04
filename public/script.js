@@ -12,8 +12,9 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
 
     const data = await res.json();
     if (data.success) {
+      msg.style.color = "green";
       msg.innerHTML = "✅ Login berhasil, membuka undangan...";
-      setTimeout(() => { window.location.href = "/index.html"; }, 1000);
+      setTimeout(() => { window.location.href = "index.html"; }, 1200);
     } else {
       msg.innerHTML = "❌ " + data.message;
     }

@@ -2,23 +2,26 @@ import express from "express";
 import mysql from "mysql2";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
-// koneksi database
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "db_simulasi",
-  port: process.env.DB_PORT || 3306,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
 });
 
 db.connect((err) => {
@@ -29,15 +32,14 @@ db.connect((err) => {
   console.log("✅ Terhubung ke database MySQL");
 });
 
-// route root
+// Root test
 app.get("/", (req, res) => {
   res.send("🚀 Backend Railway Aktif dan Terhubung!");
 });
 
-// endpoint simpan data login
+// API simpan login
 app.post("/api/simpan", (req, res) => {
   const { email, password } = req.body;
-
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Email & Password wajib diisi" });
   }
@@ -52,4 +54,4 @@ app.post("/api/simpan", (req, res) => {
   });
 });
 
-app.listen(PORT, () => console.log(`Server jalan di port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server jalan di port ${PORT}`));
