@@ -4,12 +4,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 dotenv.config();
-
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// koneksi database
+// Koneksi Database
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -26,54 +25,41 @@ db.connect((err) => {
   }
 });
 
-// cek backend aktif
+// Route default untuk cek backend
 app.get("/", (req, res) => {
   res.send("🚀 Backend Railway Aktif dan Terhubung!");
 });
 
-// API Register (simpan email & password)
+// Registrasi user baru
 app.post("/api/register", (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
+  if (!email || !password)
     return res.status(400).json({ message: "Email dan password wajib diisi" });
-  }
 
-  const query = "INSERT INTO users (email, password, waktu) VALUES (?, ?, NOW())";
-  db.query(query, [email, password], (err, result) => {
-    if (err) {
-      console.error("❌ Error saat menyimpan:", err);
-      return res.status(500).json({ message: "Gagal menyimpan user" });
-    }
-    res.json({ success: true, message: "User berhasil disimpan" });
+  const sql = "INSERT INTO users (email, password, waktu) VALUES (?, ?, NOW())";
+  db.query(sql, [email, password], (err) => {
+    if (err) return res.status(500).json({ message: "❌ Gagal menyimpan data" });
+    res.json({ success: true, message: "✅ Registrasi berhasil" });
   });
 });
 
-// API Login
+// Login user
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
+  if (!email || !password)
     return res.status(400).json({ message: "Email dan password harus diisi" });
-  }
 
-  const query = "SELECT * FROM users WHERE email = ? AND password = ?";
-  db.query(query, [email, password], (err, result) => {
-    if (err) {
-      console.error("❌ Query gagal:", err);
-      return res.status(500).json({ message: "Terjadi kesalahan server" });
-    }
-
+  const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+  db.query(sql, [email, password], (err, result) => {
+    if (err) return res.status(500).json({ message: "❌ Kesalahan server" });
     if (result.length > 0) {
-      res.json({ success: true, message: "Login berhasil" });
+      res.json({ success: true, message: "✅ Login berhasil" });
     } else {
-      res.status(401).json({ success: false, message: "Email atau password salah" });
+      res.status(401).json({ success: false, message: "❌ Email atau password salah" });
     }
   });
 });
 
 // Jalankan server
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
