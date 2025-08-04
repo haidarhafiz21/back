@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import mysql from "mysql2/promise";
@@ -6,36 +7,59 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 8080;
+// ✅ Koneksi ke database db_simulasi
+const dbConfig = {
+  host: process.env.MYSQLHOST || "localhost",
+  user: process.env.MYSQLUSER || "root",
+  password: process.env.MYSQLPASSWORD || "",
+  database: process.env.MYSQLDATABASE || "db_simulasi",
+  port: process.env.MYSQLPORT || 3306,
+};
 
-// Buat koneksi ke MySQL Railway
-const db = await mysql.createConnection({
-  host: process.env.MYSQLHOST,   // dari Railway variables
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT
+let connection;
+async function initDB() {
+  try {
+    connection = await mysql.createConnection(dbConfig);
+    console.log("✅ MySQL Connected ke db_simulasi!");
+  } catch (err) {
+    console.error("❌ Database connection failed:", err.message);
+    process.exit(1);
+  }
+}
+initDB();
+
+// ✅ Route root untuk test
+app.get("/", (req, res) => {
+  res.send("🚀 Backend Railway Aktif dan Berjalan!");
 });
 
-// API Login
+// ✅ Route login
 app.post("/api/simpan", async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    const [rows] = await db.execute(
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email dan password wajib diisi" });
+    }
+
+    const [rows] = await connection.execute(
       "SELECT * FROM users WHERE email = ? AND password = ?",
       [email, password]
     );
 
     if (rows.length > 0) {
-      res.json({ success: true, message: "Login berhasil!" });
+      res.json({ success: true, message: "Login berhasil!", user: rows[0] });
     } else {
-      res.status(401).json({ success: false, message: "Email atau password salah" });
+      res.status(401).json({ success: false, message: "Login gagal, email atau password salah" });
     }
   } catch (err) {
-    console.error("DB error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("❌ Error saat login:", err.message);
+    res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ Port Railway
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
