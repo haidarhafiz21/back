@@ -1,37 +1,41 @@
 import express from "express";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
+import mysql from "mysql2/promise";
 
 const app = express();
-const PORT = process.env.PORT || 8080;
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Setup agar bisa kirim file HTML
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, "public")));
+const PORT = process.env.PORT || 8080;
 
-// Route default -> tampilkan login.html
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+// Buat koneksi ke MySQL Railway
+const db = await mysql.createConnection({
+  host: process.env.MYSQLHOST,   // dari Railway variables
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT
 });
 
-// API login
-app.post("/api/simpan", (req, res) => {
+// API Login
+app.post("/api/simpan", async (req, res) => {
   const { email, password } = req.body;
 
-  if (email === "admin@example.com" && password === "12345") {
-    return res.json({ success: true, message: "Login berhasil 🎉" });
+  try {
+    const [rows] = await db.execute(
+      "SELECT * FROM users WHERE email = ? AND password = ?",
+      [email, password]
+    );
+
+    if (rows.length > 0) {
+      res.json({ success: true, message: "Login berhasil!" });
+    } else {
+      res.status(401).json({ success: false, message: "Email atau password salah" });
+    }
+  } catch (err) {
+    console.error("DB error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
-
-  res.status(401).json({ success: false, message: "Login gagal ❌" });
 });
 
-// Jalankan server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
