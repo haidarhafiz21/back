@@ -13,19 +13,19 @@ app.use(express.json());
 
 // Koneksi ke MySQL Railway
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || "containers-us-west-55.railway.app",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "passwordmu",
-  database: process.env.DB_NAME || "db_simulasi",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
 });
 
-// Cek koneksi
 db.connect((err) => {
   if (err) {
-    console.error("❌ Gagal konek ke database:", err);
+    console.error("❌ Database connection failed:", err);
+    process.exit(1);
   } else {
-    console.log("✅ Terhubung ke database Railway");
+    console.log("✅ Connected to Railway MySQL!");
   }
 });
 
@@ -34,29 +34,29 @@ app.get("/", (req, res) => {
   res.send("🚀 Backend Railway Aktif dan Berjalan!");
 });
 
-// API untuk login
+// Route login
 app.post("/api/simpan", (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: "Email dan password harus diisi" });
+    return res.status(400).json({ success: false, message: "Email dan password wajib diisi" });
   }
 
-  const query = "SELECT * FROM users WHERE email = ? AND password = ?";
-  db.query(query, [email, password], (err, results) => {
+  const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+  db.query(sql, [email, password], (err, result) => {
     if (err) {
       console.error("❌ Query error:", err);
-      return res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
+      return res.status(500).json({ success: false, message: "Server error" });
     }
 
-    if (results.length > 0) {
+    if (result.length > 0) {
       return res.json({ success: true, message: "Login berhasil" });
     } else {
-      return res.status(401).json({ success: false, message: "Login gagal: email atau password salah" });
+      return res.status(401).json({ success: false, message: "Email atau password salah" });
     }
   });
 });
 
-// Jalankan server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
