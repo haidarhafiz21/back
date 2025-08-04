@@ -1,30 +1,30 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+import cors from "cors";
+import bodyParser from "body-parser";
 
 const app = express();
-
-// Gunakan PORT dari Railway atau fallback ke 5000
 const PORT = process.env.PORT || 5000;
 
-// Mendapatkan __dirname (karena pakai ES Module)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Konfigurasi CORS: izinkan domain frontend
+app.use(cors({
+  origin: "https://nama-project.onrender.com", // ganti sesuai domain frontend kamu
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-// Middleware untuk melayani file statis dari folder 'front'
-app.use(express.static(path.join(__dirname, "front")));
+app.use(bodyParser.json());
 
-// Route utama -> tampilkan index.html
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "front", "index.html"));
+// Route login contoh
+app.post("/api/simpan", (req, res) => {
+  const { email, password } = req.body;
+
+  if (email === "admin@gmail.com" && password === "123456") {
+    res.json({ success: true, message: "Login berhasil!" });
+  } else {
+    res.status(401).json({ success: false, message: "Email atau password salah" });
+  }
 });
 
-// Route login -> tampilkan login.html
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "front", "login.html"));
-});
-
-// Jalankan server
 app.listen(PORT, () => {
-  console.log(`🚀 Server jalan di port ${PORT}`);
+  console.log(`✅ Server berjalan di port ${PORT}`);
 });
