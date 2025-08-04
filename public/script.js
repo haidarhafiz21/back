@@ -3,6 +3,11 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
   const password = document.getElementById("password").value;
   const msg = document.getElementById("msg");
 
+  if (!email || !password) {
+    msg.textContent = "Email dan Password wajib diisi!";
+    return;
+  }
+
   try {
     const res = await fetch("/api/simpan", {
       method: "POST",
@@ -12,17 +17,17 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
 
     const data = await res.json();
     if (data.success) {
-      // Simpan status login di browser
+      // Simpan status login ke browser
       localStorage.setItem("loggedIn", "true");
       localStorage.setItem("userEmail", email);
 
       msg.style.color = "green";
-      msg.innerHTML = "✅ Login berhasil, membuka undangan...";
+      msg.textContent = "Login berhasil! Mengarahkan ke undangan...";
       setTimeout(() => { window.location.href = "index.html"; }, 1200);
     } else {
-      msg.innerHTML = "❌ " + data.message;
+      msg.textContent = "Login gagal: " + data.message;
     }
   } catch (error) {
-    msg.innerHTML = "❌ Gagal menghubungi server";
+    msg.textContent = "❌ Gagal menghubungi server";
   }
 });
